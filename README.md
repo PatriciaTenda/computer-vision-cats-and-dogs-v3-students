@@ -181,7 +181,7 @@ computer-vision-cats-and-dogs-v3/
 - 🟡 **Warning** : High inference latency >2s (rappel 1h)
 - 🔵 **Info** : No predictions activity 15min (rappel 6h)
 
-**Endpoint** : http://localhost:3000 (admin/admin par défaut)
+**Endpoint** : http://localhost:3009 (admin/admin par défaut)
 
 ### Discord (notifications)
 
@@ -218,11 +218,11 @@ docker compose ps
 
 ### Accès aux services
 
-- **Application** : http://localhost:8000
-- **API Docs** : http://localhost:8000/docs
-- **Monitoring V2** : http://localhost:8000/monitoring (Plotly)
-- **Prometheus** : http://localhost:9090
-- **Grafana** : http://localhost:3000 (admin/admin)
+- **Application** : http://localhost:8009
+- **API Docs** : http://localhost:8009/docs
+- **Monitoring V2** : http://localhost:8009/monitoring (Plotly)
+- **Prometheus** : http://localhost:9099
+- **Grafana** : http://localhost:3009 (admin/admin)
 
 ### Premier test
 ```bash

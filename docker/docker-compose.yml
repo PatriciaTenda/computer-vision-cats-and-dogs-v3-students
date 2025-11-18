@@ -25,7 +25,7 @@
 #
 # ═══════════════════════════════════════════════════════════════════════════════
 
-version: '3.8'
+#version: '3.8'
 # 💡 Version du format Docker Compose
 # La version 3.8 offre les fonctionnalités modernes (healthchecks, depends_on avec conditions)
 # tout en restant compatible avec la plupart des environnements de production
@@ -112,9 +112,10 @@ services:
     
     healthcheck:
       # 🏥 HEALTHCHECK : Vérification automatique de l'état du service
+      
       # Essentiel pour depends_on avec condition (voir cv_app ci-dessous)
       
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-catsdogs}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-catsdogs} -d ${DB_NAME:-cats_dogs_db}_${STUDENT_ID:-student01}"]
       # 🩺 Commande de test : pg_isready (utilitaire PostgreSQL)
       # Vérifie que le serveur accepte les connexions
       # Format CMD-SHELL : exécute dans un shell (permet variables d'env)
