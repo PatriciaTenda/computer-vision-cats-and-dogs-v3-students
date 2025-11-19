@@ -46,6 +46,12 @@ database_status = Gauge(
 # 📈 QUERY PROMQL POUR ALERTE
 # - cv_database_connected == 0 : déclenche alerte Discord
 
+# Créer métrique histogram pour latence
+inference_time_histogram = Histogram(
+    'cv_inference_time_seconds',
+    'Temps d\'inférence en secondes'
+)
+
 # ═══════════════════════════════════════════════════════════════════════════
 # 🔧 SETUP - Configuration de l'instrumentation Prometheus
 # ═══════════════════════════════════════════════════════════════════════════
@@ -106,6 +112,10 @@ def update_db_status(is_connected: bool):
         # Alerte Grafana se déclenche automatiquement
     """
     database_status.set(1 if is_connected else 0)
+
+def track_inference_time(inference_time_ms: float):
+    """Enregistre le temps d'inférence"""
+    inference_time_histogram.observe(inference_time_ms / 1000)
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 🎓 CONCEPTS AVANCÉS (pour aller plus loin)

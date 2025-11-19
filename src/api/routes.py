@@ -16,7 +16,7 @@ Illustre l'intégration entre inférence ML, base de données, et monitoring mul
 
 🔗 ARCHITECTURE
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ User Request → routes.py → [Predictor, FeedbackService, DashboardService]  │
+│ User Request → routes.py → [Predictor, FeedbackService, DashboardService]   │
 │                          ↓                                                  │
 │                    [PostgreSQL, Prometheus, Discord]                        │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -97,10 +97,13 @@ update_db_status = None
 if ENABLE_PROMETHEUS:
     try:
         from src.monitoring.prometheus_metrics import (
-            update_db_status as _update_db_status   # Gauge database_status
+            update_db_status as _update_db_status,  # Gauge database_status
+            track_inference_time as _track_inference_time
         )
         # 🔄 Renommage avec underscore pour éviter shadowing (bonne pratique)
         update_db_status = _update_db_status
+        track_inference_time = _track_inference_time
+
         print("✅ Prometheus tracking functions loaded")
     except ImportError as e:
         ENABLE_PROMETHEUS = False  # Désactivation silencieuse
@@ -285,6 +288,7 @@ async def predict_api(
         # ─────────────────────────────────────────────────────────────────────
         end_time = time.perf_counter()
         inference_time_ms = int((end_time - start_time) * 1000)
+        track_inference_time(inference_time_ms)
         # Conversion secondes → millisecondes (plus lisible pour latence)
         # Typage int : évite JSON avec .567823478 ms
         
@@ -660,7 +664,7 @@ async def health_check(db: Session = Depends(get_db)):
             # Grafana peut alerter si = 0 pendant >5min
         except Exception as e:
             print(f"⚠️  Prometheus status update failed: {e}")
-    
+
     # ─────────────────────────────────────────────────────────────────────────
     # 📤 RÉPONSE HEALTHCHECK
     # ─────────────────────────────────────────────────────────────────────────

@@ -55,7 +55,7 @@ contactPoints:
         settings:
           # ⚙️ Configuration spécifique au type Discord
           
-          url: https://discord.com/api/webhooks/1437390544874504214/SQmxExsizamEPqFSY7j_5QXidD8KSbL8kKU9Q31B4P1-EKbFy0GlI435ha8Rm9dWsclJ
+          url: https://discord.com/api/webhooks/1440266926331920465/6mYDrCV1zjbKja2qU_8V1ECfbfaf7csjkduAcF_8lth2Od55Ki7Ubt537WCR-SYNS-Za
           # 🔗 URL webhook Discord (endpoint API)
           # Format : https://discord.com/api/webhooks/{id}/{token}
           # 

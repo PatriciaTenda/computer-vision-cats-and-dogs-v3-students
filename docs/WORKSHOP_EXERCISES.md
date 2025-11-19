@@ -28,7 +28,7 @@ def track_inference_time(inference_time_ms: float):
     inference_time_histogram.observe(inference_time_ms / 1000)
 ```
 
-#### 2. `src/routes.py`
+#### 2. `src/api/routes.py`
 
 Dans la fonction `predict()`, **ajouter** :
 ```python
