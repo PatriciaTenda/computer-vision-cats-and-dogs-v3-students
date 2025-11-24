@@ -98,11 +98,13 @@ if ENABLE_PROMETHEUS:
     try:
         from src.monitoring.prometheus_metrics import (
             update_db_status as _update_db_status,  # Gauge database_status
-            track_inference_time as _track_inference_time
+            track_inference_time as _track_inference_time, # Histogram time infrence computabale
+            track_feedback as _track_feedback # PIE Chart feedback_type
         )
         # 🔄 Renommage avec underscore pour éviter shadowing (bonne pratique)
         update_db_status = _update_db_status
         track_inference_time = _track_inference_time
+        track_feedback = _track_feedback
 
         print("✅ Prometheus tracking functions loaded")
     except ImportError as e:
@@ -118,10 +120,12 @@ if ENABLE_DISCORD:
         from src.monitoring.discord_notifier import (
             alert_high_latency as _alert_high_latency,
             alert_database_disconnected as _alert_database_disconnected,
+            alert_feedback_type as _alert_feedback_type,
             notifier as _notifier  # Instance DiscordNotifier globale
         )
         alert_high_latency = _alert_high_latency
         alert_database_disconnected = _alert_database_disconnected
+        alert_feedback_type = _alert_feedback_type
         notifier = _notifier
         print("✅ Discord notifier loaded")
     except ImportError as e:
@@ -218,6 +222,8 @@ async def inference_page(request: Request):
 # 🧠 API INFÉRENCE
 # ═══════════════════════════════════════════════════════════════════════════
 
+from ..monitoring.prometheus_metrics import cv_prediction_total_by_class, cv_prediction_total
+
 @router.post("/api/predict", tags=["🧠 Inférence"])
 async def predict_api(
     file: UploadFile = File(...),
@@ -288,7 +294,10 @@ async def predict_api(
         # ─────────────────────────────────────────────────────────────────────
         end_time = time.perf_counter()
         inference_time_ms = int((end_time - start_time) * 1000)
+
+        # Métrique qui récupère le temps d'inférence en millisecondes
         track_inference_time(inference_time_ms)
+
         # Conversion secondes → millisecondes (plus lisible pour latence)
         # Typage int : évite JSON avec .567823478 ms
         
@@ -321,6 +330,9 @@ async def predict_api(
         # ─────────────────────────────────────────────────────────────────────
         # 📤 RÉPONSE API (V2 - inchangé)
         # ─────────────────────────────────────────────────────────────────────
+        label = result["prediction"]
+        cv_prediction_total_by_class.labels(label=label).inc()
+
         response_data = {
             "filename": file.filename,
             "prediction": result["prediction"],  # "Cat" ou "Dog"
@@ -332,7 +344,10 @@ async def predict_api(
             "inference_time_ms": inference_time_ms,
             "feedback_id": feedback_record.id  # Pour update feedback ultérieur
         }
-        
+
+        # Intégration de la métrique qui récupère le nombre total de prédiction
+        cv_prediction_total.inc()
+
         return response_data
         
     except Exception as e:
@@ -435,7 +450,11 @@ async def update_feedback(
                     detail="user_feedback doit être 0 ou 1"
                 )
             record.user_feedback = user_feedback
-        
+
+        # tracking du user feedback
+        # 1 = satisfied = positive et 0 = unsatisfied = negative
+        track_feedback(is_positive=(user_feedback == 1)) 
+
         if user_comment:
             record.user_comment = user_comment
         

@@ -80,7 +80,29 @@ groups:
           #   3. Verify network: docker exec cv_app ping postgres
           #   4. Check disk space: df -h
           # runbook_url: "https://wiki/runbooks/postgres-down"
-
+      # ═══════════════════════════════════════════════════════════════════════════
+      # ALERTE 4 : Latence moyenne des inférences trop élévées
+      # ═══════════════════════════════════════════════════════════════════════════
+      - alert: alert_high_latency
+        expr: rate(cv_inference_time_seconds_sum[5m]) / rate(cv_inference_time_seconds_count[5m]) > 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latence élevée détectée"
+          description: "Latence moyenne > 2s pendant 2 minutes"
+      # ═══════════════════════════════════════════════════════════════════════════
+      # ALERTE 5 : Taux de feedbacks négatifs trop élevé
+      # ═══════════════════════════════════════════════════════════════════════════
+      - alert: alert_feedback_type
+        expr: (sum(rate(cv_user_feedback_total{feedback_type="unsatisfied"}[10m])) / sum(rate(cv_user_feedback_total[10m]))) > 0.5
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Taux de feedbacks négatifs élevé"
+          description: "Plus de 50% des feedbacks utilisateurs sont négatifs sur les 10 dernières minutes."
+          
 # ═══════════════════════════════════════════════════════════════════════════
 # 🎓 CONCEPTS AVANCÉS (non implémentés, pour aller plus loin)
 # ═══════════════════════════════════════════════════════════════════════════

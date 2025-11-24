@@ -309,6 +309,32 @@ def alert_database_disconnected():
         }
     )
 
+def alert_feedback_type():
+    """
+    Envoie une alerte si plus de 50% des feedbacks utilisateurs 
+    sont négatifs sur une fenêtre de 10 minutes.
+    """
+    notifier.send_alert(
+        title="⚠️ High Negative Feedback Rate",
+        message=(
+            "More than 50% of user feedbacks recorded in the last 10 minutes "
+            "are negative. This may indicate a degradation in prediction quality "
+            "or user dissatisfaction."
+        ),
+        level="critical",  # Problème grave : qualité du modèle
+        metrics={
+            "Metric": "cv_user_feedback_total",
+            "Window": "10m",
+            "Condition": "> 50% negative feedback",
+            "Impact": "❌ Degradation of user satisfaction",
+            "Service": "Model inference pipeline",
+            "Action": (
+                "Inspect recent predictions, check misclassified cases, "
+                "evaluate model drift, and review logs."
+            ),
+        }
+    )
+
 def alert_deployment_success(version: str):
     """
     Notification de déploiement réussi (non-blocking, informatif)

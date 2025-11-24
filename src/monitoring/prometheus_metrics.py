@@ -46,10 +46,43 @@ database_status = Gauge(
 # 📈 QUERY PROMQL POUR ALERTE
 # - cv_database_connected == 0 : déclenche alerte Discord
 
+# ───────────────────────────────────────────────────────────────────────────────────────
+# 📊 HISTOGRAM : histgramme représentant les latences des temps d'infernce tracqués
+# ───────────────────────────────────────────────────────────────────────────────────────
 # Créer métrique histogram pour latence
 inference_time_histogram = Histogram(
     'cv_inference_time_seconds',
     'Temps d\'inférence en secondes'
+)
+
+# ───────────────────────────────────────────────────────────────────────────────────────
+#  PIE CHART : camambert représentant le nombre total de feedbacks d'utilisateurs
+# ───────────────────────────────────────────────────────────────────────────────────────
+# Créer une métrique qui compte le nombre total de feedback utilisateurs
+feedback_counter = Counter(
+    'cv_user_feedback_total',
+    'Nombre de feedbacks utilisateurs',
+    ['feedback_type']  # "positive" ou "negative"
+)
+
+# ───────────────────────────────────────────────────────────────────────────────────────
+#  PIE CHART : camambert représentant le nombre total de feedbacks d'utilisateurs
+# ───────────────────────────────────────────────────────────────────────────────────────
+# Ajout de quelques métriques importantes pour monitorer la prédiction
+# Métrique qui compte le nombre de prédiction par classe ie par cat et par dog
+cv_prediction_total_by_class = Counter(
+    "cv_total_prediction_by_class",
+    "Nombre de prédiction par classe d'animaux",
+    ["label"] # "Cat" ou "Dog"
+)
+
+# ───────────────────────────────────────────────────────────────────────────────────────
+#  PIE CHART : camambert représentant le nombre total de feedbacks d'utilisateurs
+# ───────────────────────────────────────────────────────────────────────────────────────
+# Métrique qui récupère les prédictions totales
+cv_prediction_total = Counter(
+    "cv_total_prediction",
+    "Nombre total de prédiction"
 )
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -113,9 +146,18 @@ def update_db_status(is_connected: bool):
     """
     database_status.set(1 if is_connected else 0)
 
+
 def track_inference_time(inference_time_ms: float):
     """Enregistre le temps d'inférence"""
     inference_time_histogram.observe(inference_time_ms / 1000)
+
+
+def track_feedback(is_positive: bool):
+    """Incrémentant le compteur du nombre de feedbacks utilisateurs 'satisfied' ou 'unsatisfied'"""
+    if is_positive:
+        feedback_counter.labels(feedback_type = "satisfied").inc()
+    else:
+        feedback_counter.labels(feedback_type="unsatisfied").inc()
 
 # ═══════════════════════════════════════════════════════════════════════════
 # 🎓 CONCEPTS AVANCÉS (pour aller plus loin)
@@ -153,3 +195,4 @@ def track_inference_time(inference_time_ms: float):
 # - FastAPI Instrumentator: https://github.com/trallnag/prometheus-fastapi-instrumentator
 #
 # ═══════════════════════════════════════════════════════════════════════════
+
